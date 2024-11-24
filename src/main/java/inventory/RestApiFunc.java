@@ -89,7 +89,7 @@ public class RestApiFunc {
     @FunctionName("GetDataByStateAndCityFunction")
     public HttpResponseMessage getDataByStateAndCity(
         @HttpTrigger(name = "req",
-                     methods = {HttpMethod.GET},
+                     methods = {HttpMethod.POST},
                      authLevel = AuthorizationLevel.ANONYMOUS,
                      route = "getData") HttpRequestMessage<Optional<String>> request,
         final ExecutionContext context) {
@@ -97,18 +97,30 @@ public class RestApiFunc {
         Logger logger = context.getLogger();
         logger.info("HTTP trigger function processed a request to get data by state and city.");
 
-        String state = request.getQueryParameters().get("state");
-        String city = request.getQueryParameters().get("city");
+        String requestBody = request.getBody().orElse("");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode;
+        String state;
+        String city;
+
+        try {
+            jsonNode = mapper.readTree(requestBody);
+            state = jsonNode.get("state").asText();
+            city = jsonNode.get("city").asText();
+        } catch (Exception e) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                          .body("Invalid request body")
+                          .build();
+        }
 
         if (state == null || city == null) {
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                          .body("Please provide both state and city parameters")
+                          .body("Please provide both state and city in the request body")
                           .build();
         }
 
         try {
             List<Map<String, Object>> dataList = DatabaseOperations.getDataByStateAndCity(state, city, logger);
-            ObjectMapper mapper = new ObjectMapper();
             String jsonResponse = mapper.writeValueAsString(dataList);
 
             return request.createResponseBuilder(HttpStatus.OK)
