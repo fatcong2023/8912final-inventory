@@ -1,0 +1,16 @@
+{
+  "scriptFile" : "../8912final-inventory-java-1.0-SNAPSHOT.jar",
+  "entryPoint" : "inventory.RestApiFunc.options",
+  "bindings" : [ {
+    "type" : "httpTrigger",
+    "direction" : "in",
+    "name" : "req",
+    "route" : "{*any}",
+    "methods" : [ "OPTIONS" ],
+    "authLevel" : "ANONYMOUS"
+  }, {
+    "type" : "http",
+    "direction" : "out",
+    "name" : "$return"
+  } ]
+}

@@ -1,0 +1,16 @@
+{
+  "scriptFile" : "../8912final-inventory-java-1.0-SNAPSHOT.jar",
+  "entryPoint" : "inventory.RestApiFunc.registerUser",
+  "bindings" : [ {
+    "type" : "httpTrigger",
+    "direction" : "in",
+    "name" : "req",
+    "route" : "register",
+    "methods" : [ "POST" ],
+    "authLevel" : "ANONYMOUS"
+  }, {
+    "type" : "http",
+    "direction" : "out",
+    "name" : "$return"
+  } ]
+}
