@@ -91,13 +91,20 @@ public class RestApiFunc {
         @HttpTrigger(name = "req",
                      methods = {HttpMethod.GET},
                      authLevel = AuthorizationLevel.ANONYMOUS,
-                     route = "getData/{state}/{city}") HttpRequestMessage<Optional<String>> request,
-        @BindingName("state") String state,
-        @BindingName("city") String city,
+                     route = "getData") HttpRequestMessage<Optional<String>> request,
         final ExecutionContext context) {
 
         Logger logger = context.getLogger();
         logger.info("HTTP trigger function processed a request to get data by state and city.");
+
+        String state = request.getQueryParameters().get("state");
+        String city = request.getQueryParameters().get("city");
+
+        if (state == null || city == null) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                          .body("Please provide both state and city parameters")
+                          .build();
+        }
 
         try {
             List<Map<String, Object>> dataList = DatabaseOperations.getDataByStateAndCity(state, city, logger);
