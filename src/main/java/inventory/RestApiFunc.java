@@ -134,5 +134,59 @@ public class RestApiFunc {
                           .build();
         }
     }
+
+    @FunctionName("UpdateHundredccCountFunction")
+    public HttpResponseMessage updateHundredccCount(
+        @HttpTrigger(name = "req",
+                     methods = {HttpMethod.PUT},
+                     authLevel = AuthorizationLevel.ANONYMOUS,
+                     route = "updateCount") HttpRequestMessage<Optional<String>> request,
+        final ExecutionContext context) {
+
+        Logger logger = context.getLogger();
+        logger.info("HTTP trigger function processed a request to update hundredccCount.");
+
+        String requestBody = request.getBody().orElse("");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode;
+        String state;
+        String city;
+        String bankNumber;
+        String ABO;
+        String Rh;
+        long hundredccCount;
+
+        try {
+            jsonNode = mapper.readTree(requestBody);
+            state = jsonNode.get("state").asText();
+            city = jsonNode.get("city").asText();
+            bankNumber = jsonNode.get("bankNumber").asText();
+            ABO = jsonNode.get("ABO").asText();
+            Rh = jsonNode.get("Rh").asText();
+            hundredccCount = jsonNode.get("hundredccCount").asLong();
+        } catch (Exception e) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                          .body("Invalid request body")
+                          .build();
+        }
+
+        if (state == null || city == null || bankNumber == null || ABO == null || Rh == null) {
+            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                          .body("Please provide state, city, bankNumber, ABO, Rh, and hundredccCount in the request body")
+                          .build();
+        }
+
+        try {
+            DatabaseOperations.updateHundredccCount(state, city, bankNumber, ABO, Rh, hundredccCount, logger);
+            return request.createResponseBuilder(HttpStatus.OK)
+                          .body("hundredccCount updated successfully")
+                          .build();
+        } catch (Exception e) {
+            logger.severe("Error updating hundredccCount: " + e.getMessage());
+            return request.createResponseBuilder(HttpStatus.INTERNAL_SERVER_ERROR)
+                          .body("Error updating hundredccCount")
+                          .build();
+        }
+    }
     
 }

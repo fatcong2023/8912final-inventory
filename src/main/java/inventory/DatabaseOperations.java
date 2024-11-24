@@ -68,4 +68,23 @@ public class DatabaseOperations {
         }
         return dataList;
     }
+
+    public static void updateHundredccCount(String state, String city, String bankNumber, String ABO, String Rh, long hundredccCount, Logger logger) throws Exception {
+        try (Connection connection = DriverManager.getConnection(CONNECTION_URL)) {
+            String updateSql = "UPDATE BloodInventory SET hundredccCount = ? WHERE State = ? AND City = ? AND BankNumber = ? AND ABO = ? AND Rh = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateSql)) {
+                preparedStatement.setLong(1, hundredccCount);
+                preparedStatement.setString(2, state);
+                preparedStatement.setString(3, city);
+                preparedStatement.setString(4, bankNumber);
+                preparedStatement.setString(5, ABO);
+                preparedStatement.setString(6, Rh);
+                preparedStatement.executeUpdate();
+            }
+        } catch (Exception e) {
+            logger.severe("Database update error: " + e.getMessage());
+            throw e;
+        }
+    }
+    
 }
