@@ -5,7 +5,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class DatabaseOperations {
@@ -19,20 +21,51 @@ public class DatabaseOperations {
         }
     }
 
-    public static List<String> getDistinctStates(Logger logger) throws Exception {
-        List<String> states = new ArrayList<>();
+    public static Map<String, List<String>> getStatesAndCities(Logger logger) throws Exception {
+        Map<String, List<String>> statesAndCities = new HashMap<>();
         try (Connection connection = DriverManager.getConnection(CONNECTION_URL)) {
-            String querySql = "SELECT DISTINCT State FROM BloodInventory";
+            String querySql = "SELECT State, City FROM BloodInventory";
             try (PreparedStatement preparedStatement = connection.prepareStatement(querySql);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    states.add(resultSet.getString("State"));
+                    String state = resultSet.getString("State");
+                    String city = resultSet.getString("City");
+                    statesAndCities.computeIfAbsent(state, k -> new ArrayList<>()).add(city);
                 }
             }
         } catch (Exception e) {
             logger.severe("Database query error: " + e.getMessage());
             throw e;
         }
-        return states;
+        return statesAndCities;
+    }
+
+    public static List<Map<String, Object>> getDataByStateAndCity(String state, String city, Logger logger) throws Exception {
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        try (Connection connection = DriverManager.getConnection(CONNECTION_URL)) {
+            String querySql = "SELECT ABO, Rh, hundredccCount, State, City, BankNumber, Address, universalBankNumber FROM BloodInventory WHERE State = ? AND City = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(querySql)) {
+                preparedStatement.setString(1, state);
+                preparedStatement.setString(2, city);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        Map<String, Object> dataMap = new HashMap<>();
+                        dataMap.put("ABO", resultSet.getString("ABO"));
+                        dataMap.put("Rh", resultSet.getString("Rh"));
+                        dataMap.put("hundredccCount", resultSet.getLong("hundredccCount"));
+                        dataMap.put("State", resultSet.getString("State"));
+                        dataMap.put("City", resultSet.getString("City"));
+                        dataMap.put("BankNumber", resultSet.getString("BankNumber"));
+                        dataMap.put("Address", resultSet.getString("Address"));
+                        dataMap.put("universalBankNumber", resultSet.getString("universalBankNumber"));
+                        dataList.add(dataMap);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.severe("Database query error: " + e.getMessage());
+            throw e;
+        }
+        return dataList;
     }
 }
