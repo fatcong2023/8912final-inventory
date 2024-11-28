@@ -24,7 +24,7 @@ public class DatabaseOperations {
     public static Map<String, List<String>> getStatesAndCities(Logger logger) throws Exception {
         Map<String, List<String>> statesAndCities = new HashMap<>();
         try (Connection connection = DriverManager.getConnection(CONNECTION_URL)) {
-            String querySql = "SELECT State, City FROM BloodInventory";
+            String querySql = "SELECT distinct State, City FROM BloodInventory";
             try (PreparedStatement preparedStatement = connection.prepareStatement(querySql);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
