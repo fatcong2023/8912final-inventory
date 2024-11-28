@@ -149,18 +149,14 @@ public class RestApiFunc {
         String requestBody = request.getBody().orElse("");
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode;
-        String state;
-        String city;
-        String bankNumber;
+        long universalBankNumber;
         String ABO;
         String Rh;
         long hundredccCount;
 
         try {
             jsonNode = mapper.readTree(requestBody);
-            state = jsonNode.get("state").asText();
-            city = jsonNode.get("city").asText();
-            bankNumber = jsonNode.get("bankNumber").asText();
+            universalBankNumber = jsonNode.get("universalBankNumber").asLong();
             ABO = jsonNode.get("ABO").asText();
             Rh = jsonNode.get("Rh").asText();
             hundredccCount = jsonNode.get("hundredccCount").asLong();
@@ -170,14 +166,9 @@ public class RestApiFunc {
                           .build();
         }
 
-        if (state == null || city == null || bankNumber == null || ABO == null || Rh == null) {
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
-                          .body("Please provide state, city, bankNumber, ABO, Rh, and hundredccCount in the request body")
-                          .build();
-        }
 
         try {
-            DatabaseOperations.updateHundredccCount(state, city, bankNumber, ABO, Rh, hundredccCount, logger);
+            DatabaseOperations.updateHundredccCount(ABO, Rh, hundredccCount, universalBankNumber, logger);
             return request.createResponseBuilder(HttpStatus.OK)
                           .body("hundredccCount updated successfully")
                           .build();
